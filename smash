@@ -23,6 +23,11 @@ var argv = optimist
       type: "boolean",
       default: false
     })
+    .options("modules", {
+      describe: "ouput the import network in Makefile format",
+      type: "boolean",
+      default: false
+    })
     .options("help", {
       describe: "display this helpful message",
       type: "boolean",
@@ -42,9 +47,59 @@ if (argv.graph) return void smash.readGraph(argv._, function(error, files) {
   for (var file in files) console.log(file + ": " + files[file].join(" "));
 });
 
+if (argv.modules) return void smash.readGraph(argv._, function(error, files) {
+  var wkModule = [];
+
+  if (error) throw error;
+  modules = [];
+
+  for (var file in files){
+
+    requiredModules = [];
+    for (var i = 0; i < files[file].length; i++) {
+        requiredModules.push("'" + pathToModuleName(files[file][i], argv.basePath) + "'");
+    }
+    wkModule = "    '" + pathToModuleName(file, argv) + "': {\n"
+             + "        path: '" + stripBasePath(file, argv.basePathk) + "'";
+    if (requiredModules.length > 0) {
+         wkModule = wkModule + ",\n        requires: [" + requiredModules.join(", ") + "]\n";
+    }
+    wkModule = wkModule + "    }";
+
+    modules.push(wkModule);
+  }
+
+  console.log("modules: {");
+  console.log(modules.join(",\n"))
+  console.log("}\n");
+});
+
 if (argv.list) return void smash.readAllImports(argv._, function(error, files) {
   if (error) throw error;
   console.log(files.join("\n"));
 });
 
 smash(argv._).pipe(process.stdout);
+
+function stripBasePath(path, basePath) {
+    var newFileName = path;
+
+    if (basePath) {
+        newFileName = newFileName.replace(basePath, "");
+    }
+
+    return newFileName;
+}
+
+function pathToModuleName(path, basePath) {
+    var moduleName = path;
+
+    if (basePath) {
+        moduleName = stripBasePath(moduleName, basePath);
+    }
+
+    moduleName = moduleName.replace("/", "-");
+    moduleName = moduleName.replace(".js", "");
+
+    return moduleName;
+}
