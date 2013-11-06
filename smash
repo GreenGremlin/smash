@@ -50,6 +50,8 @@ if (argv.graph) return void smash.readGraph(argv._, function(error, files) {
 if (argv.modules) return void smash.readGraph(argv._, function(error, files) {
   var wkModule = [];
 
+  argv.targetDir = argv.targetDir || '';
+
   if (error) throw error;
   modules = [];
 
@@ -60,7 +62,7 @@ if (argv.modules) return void smash.readGraph(argv._, function(error, files) {
         requiredModules.push("'" + pathToModuleName(files[file][i], argv.basePath) + "'");
     }
     wkModule = "    '" + pathToModuleName(file, argv) + "': {\n"
-             + "        path: '" + stripBasePath(file, argv.basePathk) + "'";
+             + "        path: '" + argv.targetDir + stripBasePath(file, argv.basePath) + "'";
     if (requiredModules.length > 0) {
          wkModule = wkModule + ",\n        requires: [" + requiredModules.join(", ") + "]\n";
     }
