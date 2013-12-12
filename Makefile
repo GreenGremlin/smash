@@ -45,11 +45,14 @@ LIBRARY_FILES_YUI = \
 BASE_PATH = \
 	ext-lib/d3/
 
-module-config: $(LIBRARY_FILES) $(BASE_PATH)
-	./smash --modules $(LIBRARY_FILES) --basePath $(BASE_PATH) --targetDir /static/d3/ > target/d3-$@.js
+json-config: $(LIBRARY_FILES)
+	@rm -f $@
+	./smash --jsonConfig $(LIBRARY_FILES) --basePath $(BASE_PATH) --modulePrefix d3- --targetDir /static/d3/ > target/d3-$@.js
 
-d3-homevalues: $(LIBRARY_FILES_YUI)
-	./smash $(LIBRARY_FILES_YUI) --basePath $(BASE_PATH) > target/$@.js
-	
-d3-homevalues-min: $(LIBRARY_FILES_YUI)
-	./smash $(LIBRARY_FILES_YUI) --basePath $(BASE_PATH) | node_modules/.bin/uglifyjs - -c -m -o target/$@.js
+graph: $(LIBRARY_FILES)
+	@rm -f $@
+	./smash --graph $(LIBRARY_FILES) > target/d3-$@.js
+
+list: $(LIBRARY_FILES)
+	@rm -f $@
+	./smash --list $(LIBRARY_FILES) > target/d3-$@.js

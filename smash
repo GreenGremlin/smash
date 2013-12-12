@@ -23,8 +23,8 @@ var argv = optimist
       type: "boolean",
       default: false
     })
-    .options("modules", {
-      describe: "ouput the import network in Makefile format",
+    .options("jsonConfig", {
+      describe: "ouput the import network in json config format",
       type: "boolean",
       default: false
     })
@@ -40,6 +40,8 @@ var argv = optimist
     })
     .argv;
 
+var moduleConfigTemplate = ""
+
 if (argv.help) return optimist.showHelp();
 
 if (argv.graph) return void smash.readGraph(argv._, function(error, files) {
@@ -47,33 +49,9 @@ if (argv.graph) return void smash.readGraph(argv._, function(error, files) {
   for (var file in files) console.log(file + ": " + files[file].join(" "));
 });
 
-if (argv.modules) return void smash.readGraph(argv._, function(error, files) {
-  var wkModule = [];
-
-  argv.targetDir = argv.targetDir || '';
-
+if (argv.jsonConfig) return void smash.readConfig(argv._, argv, function(error, files) {
   if (error) throw error;
-  modules = [];
-
-  for (var file in files){
-
-    requiredModules = [];
-    for (var i = 0; i < files[file].length; i++) {
-        requiredModules.push("'" + pathToModuleName(files[file][i], argv.basePath) + "'");
-    }
-    wkModule = "    '" + pathToModuleName(file, argv) + "': {\n"
-             + "        path: '" + argv.targetDir + stripBasePath(file, argv.basePath) + "'";
-    if (requiredModules.length > 0) {
-         wkModule = wkModule + ",\n        requires: [" + requiredModules.join(", ") + "]\n";
-    }
-    wkModule = wkModule + "    }";
-
-    modules.push(wkModule);
-  }
-
-  console.log("modules: {");
-  console.log(modules.join(",\n"))
-  console.log("}\n");
+  console.log(JSON.stringify(files, null, 4));
 });
 
 if (argv.list) return void smash.readAllImports(argv._, function(error, files) {
@@ -82,26 +60,3 @@ if (argv.list) return void smash.readAllImports(argv._, function(error, files) {
 });
 
 smash(argv._).pipe(process.stdout);
-
-function stripBasePath(path, basePath) {
-    var newFileName = path;
-
-    if (basePath) {
-        newFileName = newFileName.replace(basePath, "");
-    }
-
-    return newFileName;
-}
-
-function pathToModuleName(path, basePath) {
-    var moduleName = path;
-
-    if (basePath) {
-        moduleName = stripBasePath(moduleName, basePath);
-    }
-
-    moduleName = moduleName.replace("/", "-");
-    moduleName = moduleName.replace(".js", "");
-
-    return moduleName;
-}
